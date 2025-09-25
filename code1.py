@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import sys
 import yfinance as yf
 
-symbols=['INTC', 'NVDA']
-start_date='2024-01-01'
-end_date='2024-12-31'
 
 def download_historical_prices(symbols, start_date, end_date, auto_adjust=True):
     """
@@ -48,4 +45,39 @@ def plot_histogram(returns:pd.Series, title:str, bins:int=20)->None:
     """
     Plot a histogram of returns.
     """
-    
+    if returns.empty:
+        raise ValueError("'returns' is empty; nothing to plot.")
+    plt.figure()
+    plt.hist(returns, bins=bins)
+    plt.title(title)
+    plt.xlabel("Daily Return")
+    plt.ylabel("Frequency")
+    plt.tight_layout()
+    plt.show()
+
+def main()->None:
+    #===Config---
+    symbols=['INTC', 'NVDA']
+    start_date='2024-01-01'
+    end_date='2024-12-31'
+    focus_symbol='INTC' #Which symbol to focus on
+
+    #===Download Data---
+    prices = download_historical_prices(symbols, start_date, end_date, auto_adjust=True)
+    print("Sample of downloaded prices:")
+    print(prices.head().to_string())
+
+    #===Compute Daily Returns for the focus symbol---
+    focus_col = f"{focus_symbol}_Close"
+    if focus_col not in prices.columns:
+        raise KeyError(
+            f"Expected column '{focus_col}' not found.Available: {list(prices.columns)}"
+        )
+
+    if __name__ == "__main__":
+        try:
+            main()
+        except Exception as exc:
+            #Fail loudly with a helpful message.
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
